@@ -88,10 +88,10 @@ struct PlayerPanelView_Previews: PreviewProvider {
         // Show a pair of panels (one upright, one flipped) side by side
         HStack {
             PlayerPanelView(player: $previewPlayer, flipped: false)
-                .frame(width: 200, height: 250)
+                .frame(width: 200, height: 280)
             
             PlayerPanelView(player: $previewPlayer, flipped: true)
-                .frame(width: 200, height: 250)
+                .frame(width: 200, height: 280)
         }
         .previewLayout(.sizeThatFits)
     }

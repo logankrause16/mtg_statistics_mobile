@@ -13,7 +13,7 @@ struct mtg_statistics_mobileApp: App {
 
     var body: some Scene {
         WindowGroup {
-            LifeLinkerView()
+            LandingPageView()
         }
     }
 }

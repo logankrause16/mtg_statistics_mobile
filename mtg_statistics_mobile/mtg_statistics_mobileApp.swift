@@ -13,8 +13,7 @@ struct mtg_statistics_mobileApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
-                .environment(\.managedObjectContext, persistenceController.container.viewContext)
+            LifeLinkerView()
         }
     }
 }

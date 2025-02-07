@@ -1,6 +1,4 @@
-// ViewModels/PlayerViewModel.swift
 import Foundation
-import Combine
 
 class PlayerViewModel: ObservableObject {
     @Published var availablePlayers: [String] = []
@@ -10,11 +8,17 @@ class PlayerViewModel: ObservableObject {
     }
     
     func fetchPlayers() {
-        // Replace this simulated delay with your actual database call.
-        DispatchQueue.global().asyncAfter(deadline: .now() + 1.0) {
-            let names = ["Alice", "Bob", "Charlie", "Diana", "Eve"]
+        APIService.shared.fetchUsers { [weak self] result in
             DispatchQueue.main.async {
-                self.availablePlayers = names
+                switch result {
+                case .success(let users):
+                    // Map the fetched User objects to their names.
+                    self?.availablePlayers = users.map { $0.name }
+                case .failure(let error):
+                    // Handle error as needed (e.g., log or show an error message)
+                    print("Error fetching users: \(error)")
+                    self?.availablePlayers = []
+                }
             }
         }
     }

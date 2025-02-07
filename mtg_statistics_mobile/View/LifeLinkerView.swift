@@ -45,17 +45,6 @@ struct LifeLinkerView: View {
                                 .foregroundColor(.blue)
                         }
                         
-                        Text("\(players.count)")
-                            .font(.title)
-                            .foregroundColor(.blue)
-                        
-                        HStack(spacing: 8) {
-                            Circle().fill(Color.red).frame(width: 20, height: 20)
-                            Circle().fill(Color.green).frame(width: 20, height: 20)
-                            Circle().fill(Color.blue).frame(width: 20, height: 20)
-                            Circle().fill(Color.black).frame(width: 20, height: 20)
-                        }
-                        
                         Button(action: rollDice) {
                             Image(systemName: "die.face.6")
                                 .resizable()

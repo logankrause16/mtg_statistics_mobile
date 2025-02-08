@@ -5,6 +5,7 @@ struct LifeLinkerView: View {
     @State var players: [Player]
 
     @State private var showDiceResult: Bool = false
+    @State private var gameSubmitted: Bool = false
     @State private var diceNumber: Int = 0
 
     var body: some View {
@@ -51,6 +52,13 @@ struct LifeLinkerView: View {
                                 .frame(width: 30, height: 30)
                                 .foregroundColor(.blue)
                         }
+                        
+                        Button(action: submitGameResult) {
+                            Image(systemName: "paperplane.fill")
+                                .resizable()
+                                .frame(width: 30, height: 30)
+                                .foregroundColor(.blue)
+                        }
                     }
                     .padding()
                 }
@@ -74,6 +82,25 @@ struct LifeLinkerView: View {
                     .background(Color.black.opacity(0.7))
                     .ignoresSafeArea()
                 }
+                
+                if gameSubmitted {
+                    VStack {
+                        Text("Game Submitted!")
+                            .font(.largeTitle)
+                            .foregroundColor(.white)
+                            .padding()
+                        
+                        Button("Close") {
+                            gameSubmitted = false
+                        }
+                        .padding()
+                        .background(Color.white)
+                        .cornerRadius(8)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(Color.black.opacity(0.7))
+                    .ignoresSafeArea( edges: [.horizontal])
+                }
             }
         }
     }
@@ -89,6 +116,12 @@ struct LifeLinkerView: View {
     private func rollDice() {
         diceNumber = Int.random(in: 1...6)
         showDiceResult = true
+    }
+    
+    private func submitGameResult() {
+//        APIService.shared.submitGame(players: players)
+        gameSubmitted = true
+        
     }
 }
 

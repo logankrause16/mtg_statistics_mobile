@@ -119,7 +119,12 @@ struct LifeLinkerView: View {
     }
     
     private func submitGameResult() {
-//        APIService.shared.submitGame(players: players)
+        let participants: [GameParticipants] = [
+            GameParticipants(id: 1, game_id: 1, user_id: 1, deck_id: 1, loss_condition_id: 1, win: true, notes: "Scooped"),
+            GameParticipants(id: 2, game_id: 1, user_id: 2, deck_id: 2, loss_condition_id: 2, win: false, notes: "Had to leave"),
+            GameParticipants(id: 3, game_id: 1, user_id: 3, deck_id: 3, loss_condition_id: 3, win: true, notes: nil)
+        ]
+//        APIService.shared.submitGame(game: participants)
         gameSubmitted = true
         
     }

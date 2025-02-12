@@ -1,23 +1,27 @@
+//
+//  PlayerViewModel.swift
+//  mtg_statistics_mobile
+//
+//  Created by Logan Krause on 2/8/25.
+//
+
 import Foundation
 
 class PlayerViewModel: ObservableObject {
     @Published var availablePlayers: [String] = []
     
-    init() {
-        fetchPlayers()
-    }
-    
-    func fetchPlayers() {
+    func fetchPlayers(completion: @escaping ([String]) -> Void) {
         APIService.shared.fetchUsers { [weak self] result in
             DispatchQueue.main.async {
                 switch result {
                 case .success(let users):
-                    // Map the fetched User objects to their names.
-                    self?.availablePlayers = users.map { $0.name }
+                    let players = users.map { $0.name }
+                    self?.availablePlayers = players
+                    completion(players)
                 case .failure(let error):
-                    // Handle error as needed (e.g., log or show an error message)
                     print("Error fetching users: \(error)")
                     self?.availablePlayers = []
+                    completion([])
                 }
             }
         }

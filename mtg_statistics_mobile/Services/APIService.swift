@@ -15,7 +15,7 @@ class APIService {
     /// - Parameters:
     ///   - game: A Game instance that will be encoded into JSON and sent to the backend.
     ///   - completion: A completion handler that returns a Result containing a success message String or an Error.
-    func submitGame(game: GameParticipants, completion: @escaping (Result<String, Error>) -> Void) {
+    func submitGame(game: [GameParticipants], completion: @escaping (Result<String, Error>) -> Void) {
         // Create the full endpoint URL by appending "/game/submit"
         let submitGameEndpoint = URL(string: gameEndpoint + "/game/submit")
         var request = URLRequest(url: submitGameEndpoint!)
@@ -107,4 +107,62 @@ class APIService {
         
         task.resume()
     }
+    
+    func createGame(selectedPlayers: [String], completion: @escaping (Result<Game, Error>) -> Void) {
+        // Construct the URL using your game endpoint.
+        guard let url = URL(string: gameEndpoint + "/game/new") else {
+            let urlError = NSError(domain: "APIService", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid URL"])
+            completion(.failure(urlError))
+            return
+        }
+        
+        // Create and configure the URLRequest as a POST request.
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        do {
+            // Encode the selectedPlayers array into JSON data.
+            let playersData = try JSONEncoder().encode(selectedPlayers)
+            // Base64 encode the JSON data.
+            let base64PlayersString = playersData.base64EncodedString()
+            // Wrap the base64 string in a dictionary. Adjust the key as needed by your backend.
+            let payload: [String: String] = ["players": base64PlayersString]
+            // Convert the payload dictionary into JSON data.
+            let payloadData = try JSONSerialization.data(withJSONObject: payload, options: [])
+            // Set the JSON payload as the request body.
+            request.httpBody = payloadData
+        } catch {
+            completion(.failure(error))
+            return
+        }
+        
+        // Create the data task.
+        let task = URLSession.shared.dataTask(with: request) { data, response, error in
+            // If an error occurred, return it.
+            if let error = error {
+                completion(.failure(error))
+                return
+            }
+            
+            // Ensure data exists.
+            guard let data = data else {
+                let noDataError = NSError(domain: "APIService", code: -1, userInfo: [NSLocalizedDescriptionKey: "No data returned"])
+                completion(.failure(noDataError))
+                return
+            }
+            
+            do {
+                // Decode the JSON response into a Game object.
+                let game = try JSONDecoder().decode(Game.self, from: data)
+                completion(.success(game))
+            } catch {
+                completion(.failure(error))
+            }
+        }
+        
+        // Start the task.
+        task.resume()
+    }
+
 }

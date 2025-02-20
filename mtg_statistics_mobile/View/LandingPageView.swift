@@ -1,38 +1,112 @@
 import SwiftUI
 
+// Make PlayerSelection identifiable so SwiftUI can track changes.
+struct PlayerSelection: Identifiable, Equatable {
+    let id = UUID()
+    var playerIndex: Int = -1
+    var deckIndex: Int = -1
+}
+
 struct LandingPageView: View {
     @StateObject private var playerViewModel = PlayerViewModel()
     @StateObject private var gameViewModel = GameViewModel()
     
-    // Tracks the selected index for each player picker; -1 means "not selected"
-    @State private var selectedIndices: [Int] = [-1, -1, -1, -1]
-    // Tracks the selected deck index for each player; -1 means "not selected"
-    @State private var selectedDeckIndices: [Int] = [-1, -1, -1, -1]
+    // Start with two players.
+    @State private var players: [PlayerSelection] = [PlayerSelection(), PlayerSelection()]
     
     @State private var showAlert = false
-    // Trigger for navigation to LifeLinkerView
     @State private var navigateToLifeLinker = false
-    // Temporarily hold the selected player names (as Strings)
     @State private var selectedPlayers: [String] = []
     
     var body: some View {
         NavigationView {
             Form {
-                // For each player slot, display the player picker and, if selected, the deck picker.
-                ForEach(0..<4, id: \.self) { index in
-                    VStack(alignment: .leading, spacing: 10) {
-                        self.playerPicker(for: index)
-                        self.deckPickerIfNeeded(for: index)
+                // Dynamic list of player pickers.
+                Section(header: Text("Players")) {
+                    ForEach(players.indices, id: \.self) { index in
+                        VStack(alignment: .leading, spacing: 10) {
+                            // Player Picker
+                            Picker("Player \(index + 1)", selection: Binding(
+                                get: { players[index].playerIndex },
+                                set: { players[index].playerIndex = $0 }
+                            )) {
+                                Text("Select a Player").tag(-1)
+                                ForEach(playerViewModel.availablePlayers.indices, id: \.self) { i in
+                                    Text(playerViewModel.availablePlayers[i]).tag(i)
+                                }
+                            }
+                            .pickerStyle(MenuPickerStyle())
+                            
+                            // Deck Picker appears only when a player is selected.
+                            if players[index].playerIndex != -1 {
+                                let playerName = playerViewModel.availablePlayers[players[index].playerIndex]
+                                Picker("Select deck for \(playerName)", selection: Binding(
+                                    get: { players[index].deckIndex },
+                                    set: { players[index].deckIndex = $0 }
+                                )) {
+                                    Text("Select a Deck").tag(-1)
+                                    // Uncomment and add deck options if needed.
+                                }
+                                .pickerStyle(MenuPickerStyle())
+                            }
+                        }
+                        .padding(.vertical, 5)
                     }
-                    .padding(.vertical, 5)
                 }
                 
-                // Button to start the game.
-                Button("Start Game") {
-                    if selectedIndices.contains(-1) {
-                        showAlert = true
-                    } else {
-                        selectedPlayers = selectedIndices.map { playerViewModel.availablePlayers[$0] }
+                // Section for adding players.
+                Section {
+                    Button("Add Player (Limit 4)") {
+                        if players.count < 4 {
+                            players.append(PlayerSelection())
+                        }
+                    }
+                    .disabled(players.count >= 4)
+                }
+                
+                // Section for removing players.
+                Section {
+                    Button("Remove Player") {
+                        if players.count > 2 {
+                            players.removeLast()
+                        }
+                    }
+                    .disabled(players.count <= 2)
+                }
+                
+                // Section for starting the game.
+                Section {
+                    Button("Start Game") {
+                        let indices = players.map { $0.playerIndex }
+                        // Debug prints.
+                        print("Selected indices: \(indices)")
+                        print("Available players: \(playerViewModel.availablePlayers)")
+                        
+                        // Check if any selection is missing.
+                        guard !indices.contains(-1),
+                              !playerViewModel.availablePlayers.isEmpty,
+                              indices.allSatisfy({ $0 >= 0 && $0 < playerViewModel.availablePlayers.count })
+                        else {
+                            showAlert = true
+                            return
+                        }
+                        
+                        // Use safe mapping.
+                        let mappedPlayers = indices.compactMap { index -> String? in
+                            if index >= 0 && index < playerViewModel.availablePlayers.count {
+                                return playerViewModel.availablePlayers[index]
+                            } else {
+                                return nil
+                            }
+                        }
+                        
+                        // If mapping didn't yield all players, show alert.
+                        guard mappedPlayers.count == players.count else {
+                            showAlert = true
+                            return
+                        }
+                        
+                        selectedPlayers = mappedPlayers
                         gameViewModel.createGame(selectedPlayers: selectedPlayers)
                         navigateToLifeLinker = true
                     }
@@ -42,7 +116,7 @@ struct LandingPageView: View {
             .alert(isPresented: $showAlert) {
                 Alert(
                     title: Text("Incomplete Selection"),
-                    message: Text("Please select all players."),
+                    message: Text("Please select all players properly."),
                     dismissButton: .default(Text("OK"))
                 )
             }
@@ -65,36 +139,6 @@ struct LandingPageView: View {
                 playerViewModel.fetchPlayers { _ in }
             }
         }
-    }
-    
-    // Helper function for the player picker.
-    private func playerPicker(for index: Int) -> some View {
-        Picker("Player \(index + 1)", selection: $selectedIndices[index]) {
-            Text("Select a Player").tag(-1)
-            ForEach(playerViewModel.availablePlayers.indices, id: \.self) { i in
-                Text(playerViewModel.availablePlayers[i]).tag(i)
-            }
-        }
-        .pickerStyle(MenuPickerStyle())
-    }
-    
-    // Helper function for the deck picker.
-    // Returns an EmptyView if no player is selected.
-    private func deckPickerIfNeeded(for index: Int) -> AnyView {
-        if selectedIndices[index] == -1 {
-            return AnyView(EmptyView())
-        }
-        let playerName = playerViewModel.availablePlayers[selectedIndices[index]]
-//        let decks = playerViewModel.decks(for: playerName)
-        return AnyView(
-            Picker("Select deck for \(playerName)", selection: $selectedDeckIndices[index]) {
-                Text("Select a Deck").tag(-1)
-//                ForEach(decks.indices, id: \.self) { deckIndex in
-//                    Text(decks[deckIndex].name).tag(deckIndex)
-//                }
-            }
-            .pickerStyle(MenuPickerStyle())
-        )
     }
 }
 

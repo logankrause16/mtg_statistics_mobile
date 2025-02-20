@@ -11,31 +11,63 @@ struct LifeLinkerView: View {
     var body: some View {
         GeometryReader { geo in
             ZStack {
-                // Background color
+                // Background color.
                 Color.white
                     .ignoresSafeArea()
-
-                // Top-Left panel (upright)
-                PlayerPanelView(player: $players[0], flipped: true)
-                    .frame(width: geo.size.width / 2, height: geo.size.height / 2)
-                    .position(x: geo.size.width / 4, y: geo.size.height / 4)
-
-                // Top-Right panel (flipped)
-                PlayerPanelView(player: $players[1], flipped: true)
-                    .frame(width: geo.size.width / 2, height: geo.size.height / 2)
-                    .position(x: 3 * geo.size.width / 4, y: geo.size.height / 4)
-
-                // Bottom-Left panel (flipped)
-                PlayerPanelView(player: $players[2], flipped: false)
-                    .frame(width: geo.size.width / 2, height: geo.size.height / 2)
-                    .position(x: geo.size.width / 4, y: 3 * geo.size.height / 4)
-
-                // Bottom-Right panel (upright)
-                PlayerPanelView(player: $players[3], flipped: false)
-                    .frame(width: geo.size.width / 2, height: geo.size.height / 2)
-                    .position(x: 3 * geo.size.width / 4, y: 3 * geo.size.height / 4)
-
-                // Overlay for extra controls at the bottom
+                
+                // Layout according to the number of players.
+                if players.count == 2 {
+                    // Two players: one panel on top, one on bottom.
+                    // Top panel: player 0 (flipped)
+                    PlayerPanelView(player: $players[0], flipped: true)
+                        .frame(width: geo.size.width, height: geo.size.height / 2)
+                        .position(x: geo.size.width / 2, y: geo.size.height / 4)
+                    
+                    // Bottom panel: player 1 (not flipped)
+                    PlayerPanelView(player: $players[1], flipped: false)
+                        .frame(width: geo.size.width, height: geo.size.height / 2)
+                        .position(x: geo.size.width / 2, y: 3 * geo.size.height / 4)
+                }
+                else if players.count == 3 {
+                    // Three players:
+                    // Top half: player 0 occupies full top half (flipped).
+                    PlayerPanelView(player: $players[0], flipped: true)
+                        .frame(width: geo.size.width, height: geo.size.height / 2)
+                        .position(x: geo.size.width / 2, y: geo.size.height / 4)
+                    
+                    // Bottom half: split horizontally between players 1 and 2.
+                    PlayerPanelView(player: $players[1], flipped: false)
+                        .frame(width: geo.size.width / 2, height: geo.size.height / 2)
+                        .position(x: geo.size.width / 4, y: 3 * geo.size.height / 4)
+                    
+                    PlayerPanelView(player: $players[2], flipped: false)
+                        .frame(width: geo.size.width / 2, height: geo.size.height / 2)
+                        .position(x: 3 * geo.size.width / 4, y: 3 * geo.size.height / 4)
+                }
+                else if players.count >= 4 {
+                    // Four players: 2 x 2 grid.
+                    // Top-Left (player 0, flipped)
+                    PlayerPanelView(player: $players[0], flipped: true)
+                        .frame(width: geo.size.width / 2, height: geo.size.height / 2)
+                        .position(x: geo.size.width / 4, y: geo.size.height / 4)
+                    
+                    // Top-Right (player 1, flipped)
+                    PlayerPanelView(player: $players[1], flipped: true)
+                        .frame(width: geo.size.width / 2, height: geo.size.height / 2)
+                        .position(x: 3 * geo.size.width / 4, y: geo.size.height / 4)
+                    
+                    // Bottom-Left (player 2, not flipped)
+                    PlayerPanelView(player: $players[2], flipped: false)
+                        .frame(width: geo.size.width / 2, height: geo.size.height / 2)
+                        .position(x: geo.size.width / 4, y: 3 * geo.size.height / 4)
+                    
+                    // Bottom-Right (player 3, not flipped)
+                    PlayerPanelView(player: $players[3], flipped: false)
+                        .frame(width: geo.size.width / 2, height: geo.size.height / 2)
+                        .position(x: 3 * geo.size.width / 4, y: 3 * geo.size.height / 4)
+                }
+                
+                // Overlay for extra controls at the bottom.
                 VStack {
                     Spacer()
                     HStack(spacing: 20) {
@@ -63,7 +95,7 @@ struct LifeLinkerView: View {
                     .padding()
                 }
                 
-                // Dice roll popup overlay
+                // Dice roll popup overlay.
                 if showDiceResult {
                     VStack {
                         Text("Rolled a \(diceNumber)")
@@ -83,6 +115,7 @@ struct LifeLinkerView: View {
                     .ignoresSafeArea()
                 }
                 
+                // Game submitted overlay.
                 if gameSubmitted {
                     VStack {
                         Text("Game Submitted!")
@@ -99,7 +132,7 @@ struct LifeLinkerView: View {
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .background(Color.black.opacity(0.7))
-                    .ignoresSafeArea( edges: [.horizontal])
+                    .ignoresSafeArea(edges: [.horizontal])
                 }
             }
         }
@@ -124,9 +157,8 @@ struct LifeLinkerView: View {
             GameParticipants(id: 2, game_id: 1, user_id: 2, deck_id: 2, loss_condition_id: 2, win: false, notes: "Had to leave"),
             GameParticipants(id: 3, game_id: 1, user_id: 3, deck_id: 3, loss_condition_id: 3, win: true, notes: nil)
         ]
-//        APIService.shared.submitGame(game: participants)
+        // APIService.shared.submitGame(game: participants)
         gameSubmitted = true
-        
     }
 }
 
@@ -136,8 +168,7 @@ struct LifeLinkerView_Previews: PreviewProvider {
         LifeLinkerView(players: [
             Player(user: User(id: 1, name: "Player 1"), health: 40),
             Player(user: User(id: 2, name: "Player 2"), health: 40),
-            Player(user: User(id: 3, name: "Player 3"), health: 40),
-            Player(user: User(id: 4, name: "Player 4"), health: 40)
+            Player(user: User(id: 3, name: "Player 3"), health: 40)
         ])
         .previewInterfaceOrientation(.landscapeLeft)
     }

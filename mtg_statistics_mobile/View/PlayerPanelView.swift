@@ -1,10 +1,3 @@
-//
-//  PlayerPanelView.swift
-//  MTGStatisticsApp
-//
-//  Created by [Your Name] on [Date].
-//
-
 import SwiftUI
 
 /// A view displaying one player's panel, including life total, plus/minus buttons,
@@ -12,7 +5,6 @@ import SwiftUI
 ///
 /// The `flipped` parameter allows you to rotate the *entire* panel upside-down
 /// while re-rotating the internal text so it remains upright.
-/// This approach ensures that buttons and layout are correct for an "upside-down" seat.
 struct PlayerPanelView: View {
     @Binding var player: Player
     
@@ -33,14 +25,18 @@ struct PlayerPanelView: View {
     
     var body: some View {
         ZStack {
-            // 1) Rotate the entire background shape if flipped
-            RoundedRectangle(cornerRadius: 20)
+            // 1) Background rectangle with squared off edges and a border
+            Rectangle()
                 .fill(backgroundColor)
+                .overlay(
+                    Rectangle()
+                        .stroke(Color.black, lineWidth: 2)
+                )
                 .rotationEffect(.degrees(flipped ? 180 : 0))
             
             // 2) Then rotate the content back so text remains upright
             VStack(spacing: -60) {
-                // Top row: minus & plus
+                // Top row: minus & plus buttons
                 HStack {
                     Button(action: {
                         player.health -= 1
@@ -78,7 +74,7 @@ struct PlayerPanelView: View {
 // MARK: - Previews
 
 struct PlayerPanelView_Previews: PreviewProvider {
-    // Sample data
+    // Sample data for preview
     @State static var previewPlayer = Player(
         user: User(id: 1, name: "Logs"),
         health: 40
